@@ -3,65 +3,72 @@
 #include "game_parameters.hpp"
 #include "level_system.hpp"
 
+using param = Parameters;
 using ls = LevelSystem;
 
-std::unique_ptr<Player> GameSystem::player;
-sf::Text GameSystem::win_text;
-sf::Font GameSystem::font;
+std::shared_ptr<Scene> GameSystem::_active_scene;
 
-void GameSystem::Load() {
-
-  player = std::make_unique<Player>();
-
-  ls::loadLevelFile("resources/levels/maze.txt");
-
-  int tile_size_x = game_width/ls::getWidth();
-  int tile_size_y = game_height/ls::getHeight();
-
-  for (size_t y = 0; y < ls::getHeight(); ++y) {
-    for (size_t x = 0; x < ls::getWidth(); ++x) {
-      std::cout << ls::getTile({x, y});
-      if(ls::getTile({x,y}) == ls::START)
-        player->setPosition({x*tile_size_x,y*tile_size_y});
+void GameSystem::start(unsigned int width, unsigned int height, 
+                      const std::string& name){
+    sf::RenderWindow window(sf::VideoMode({width, height}), name);    
+    _init();
+    sf::Event event;
+    while(window.isOpen()){
+      static sf::Clock clock;
+      float dt = clock.restart().asSeconds();
+      while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+          window.close();
+          clean();
+          return;
+      }
     }
-    std::cout << std::endl;
-  }
-
-  win_text.setString("Well Done !!!");
-  font.loadFromFile("resources/fonts/RobotoMono-Regular.ttf");
-  win_text.setFont(font);
-  win_text.setPosition(-100,-100);
-  win_text.setCharacterSize(60);
-  win_text.setColor(sf::Color(0,255,0));
-}
-
-void GameSystem::Clean(){
-  player.reset();
-}
-
-void GameSystem::Update(sf::RenderWindow &window){
-  static sf::Clock clock;
-  float dt = clock.restart().asSeconds();
-  sf::Event event;
-  while (window.pollEvent(event)) {
-    if (event.type == sf::Event::Closed) {
+      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
         window.close();
-        return;
-    }
+      }
+      window.clear();
+      _update(dt);
+      _render(window);
+      //Wait for Vsync
+      window.display();
+              
   }
-  if(ls::getTileAt(player->getPosition()) == ls::END){
-    win_text.setPosition(game_width/2.f-100,game_height/2.f);
-    return;
-  }
-    
-
-  player->Update(dt);
-
-
+  window.close();
+  clean();
 }
 
-void GameSystem::Render(sf::RenderWindow &window){
-  ls::Render(window);
-  player->Render(window);
-  window.draw(win_text);
+void GameSystem::set_active_scene(const std::shared_ptr<Scene> &act_sc){
+  _active_scene = act_sc;
+}
+
+void GameSystem::_init() {
+  _active_scene->load();
+}
+
+void GameSystem::clean(){
+  _active_scene->unload();
+}
+
+void GameSystem::_update(const float &dt){
+  _active_scene->update(dt);
+}
+
+void GameSystem::_render(sf::RenderWindow &window){
+  _active_scene->render(window);
+}
+
+void Scene::update(const float &dt){
+  for(std::shared_ptr<Entity> &ent: _entities){
+    ent->update(dt);
+  }
+}
+
+void Scene::render(sf::RenderWindow &window){
+    for(std::shared_ptr<Entity> &ent: _entities){
+      ent->render(window);
+    }
+}
+
+void Scene::unload(){
+  _entities.clear();
 }

@@ -1,23 +1,14 @@
-#include <iostream>
-#include <vector>
-#include <SFML/Graphics.hpp>
 #include "game_parameters.hpp"
 #include "game_system.hpp"
-#include "player.hpp"
+#include "scenes.hpp"
 
-sf::Texture spritesheet;
+using param = Parameters;
 
 int main(){
-  sf::RenderWindow window(sf::VideoMode({game_width, game_height}), "SPACE Invaders");
-  
-  GameSystem::Load();
-	while(window.isOpen()){
-    window.clear();
-    GameSystem::Update(window);
-    GameSystem::Render(window);
-    //Wait for Vsync
-    window.display();
-  }
-  GameSystem::Clean();
+  Scenes::maze = std::make_shared<MazeScene>();
+  Scenes::end = std::make_shared<EndScene>();
+  std::static_pointer_cast<MazeScene>(Scenes::maze)->set_file_path(param::maze_1);
+  GameSystem::set_active_scene(Scenes::maze);
+  GameSystem::start(param::game_width,param::game_height,"tile_maze");
   return 0;
 }
