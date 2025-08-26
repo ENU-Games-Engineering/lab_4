@@ -35,7 +35,6 @@ void MazeScene::update(const float &dt){
         }
         else{
            unload();
-           Scenes::end->load();
            gs::set_active_scene(Scenes::end);
         }
         return;

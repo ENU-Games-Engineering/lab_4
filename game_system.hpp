@@ -9,7 +9,7 @@ class Scene;//forward definition
 class GameSystem{
 public:
     static void start(unsigned int width, unsigned int height, 
-                      const std::string& name);
+                      const std::string& name, const float& time_step);
     static void clean();
     static void reset();
     static void set_active_scene(const std::shared_ptr<Scene>& act_sc);

@@ -1,15 +1,10 @@
 #include <iostream>
 #include "game_system.hpp"
-#include "game_parameters.hpp"
-#include "level_system.hpp"
-
-using param = Parameters;
-using ls = LevelSystem;
 
 std::shared_ptr<Scene> GameSystem::_active_scene;
 
 void GameSystem::start(unsigned int width, unsigned int height, 
-                      const std::string& name){
+                      const std::string& name, const float &time_step){
     sf::RenderWindow window(sf::VideoMode({width, height}), name);    
     _init();
     sf::Event event;
@@ -29,6 +24,7 @@ void GameSystem::start(unsigned int width, unsigned int height,
       window.clear();
       _update(dt);
       _render(window);
+      sf::sleep(sf::seconds(time_step));
       //Wait for Vsync
       window.display();
               
@@ -42,7 +38,6 @@ void GameSystem::set_active_scene(const std::shared_ptr<Scene> &act_sc){
 }
 
 void GameSystem::_init() {
-  _active_scene->load();
 }
 
 void GameSystem::clean(){
